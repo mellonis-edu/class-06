@@ -1,0 +1,25 @@
+{
+  "name": "class-06",
+  "version": "1.0.0",
+  "description": "",
+  "main": "class.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint class.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mellonis-edu/class-06.git"
+  },
+  "author": "Ruslan Gilmullin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mellonis-edu/class-06/issues"
+  },
+  "homepage": "https://github.com/mellonis-edu/class-06#readme",
+  "devDependencies": {
+    "eslint": "^6.5.1",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-plugin-import": "^2.18.2"
+  }
+}
