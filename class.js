@@ -93,12 +93,12 @@ function promise() {
     getPromisified,
     multiplyPromisified,
     toStringPromisified,
-    repeatPromisified
+    repeatPromisified,
   ] = [
     get(2),
     multiply(10),
     toString,
-    repeat(3)
+    repeat(3),
   ]
     .map(promisify);
 
@@ -122,5 +122,42 @@ function promise() {
     .catch(onError);
 }
 
+async function asyncAwait() {
+  const [
+    getPromisified,
+    multiplyPromisified,
+    toStringPromisified,
+    repeatPromisified,
+  ] = [
+    get(2),
+    multiply(10),
+    toString,
+    repeat(3),
+  ]
+    .map(promisify);
+
+  try {
+    const list = await new Promise((resolve, reject) => {
+      requestList((error, result) => {
+        if (error) {
+          reject(error);
+        }
+
+        resolve(result);
+      });
+    });
+    const thirdItem = await getPromisified(list);
+    const tenTimesItem = await multiplyPromisified(thirdItem);
+    const stringItem = await toStringPromisified(tenTimesItem);
+    const repeatedItem = await repeatPromisified(stringItem);
+
+    // eslint-disable-next-line no-console
+    console.log(`asyncAwait(): ${repeatedItem} (${typeof repeatedItem})`);
+  } catch (error) {
+    onError(error);
+  }
+}
+
 callbackHell();
 promise();
+asyncAwait();
