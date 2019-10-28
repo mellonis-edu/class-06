@@ -4,17 +4,21 @@ function requestList(callback) {
     callback.apply(null, [null, [1, 3, 83, 2, 1]]);
   }, 500);
 }
-function get(list, n, callback) {
-  // эмуляция запроса на сервер
-  setTimeout(() => {
-    callback.apply(null, [null, list[n]]);
-  }, 500);
+function get(ix) {
+  return function innerGet(list, callback) {
+    // эмуляция запроса на сервер
+    setTimeout(() => {
+      callback.apply(null, [null, list[ix]]);
+    }, 500);
+  };
 }
-function multiply(value, n, callback) {
-  // эмуляция запроса на сервер
-  setTimeout(() => {
-    callback.apply(null, [null, value * n]);
-  });
+function multiply(n) {
+  return function innerMultiply(value, callback) {
+    // эмуляция запроса на сервер
+    setTimeout(() => {
+      callback.apply(null, [null, value * n]);
+    });
+  };
 }
 function toString(value, callback) {
   // эмуляция запроса на сервер
@@ -22,15 +26,27 @@ function toString(value, callback) {
     callback.apply(null, [null, String(value)]);
   });
 }
-function repeat(string, n, callback) {
-  // эмуляция запроса на сервер
-  setTimeout(() => {
-    callback.apply(null, [null, string.repeat(n)]);
-  }, 1000);
+function repeat(n) {
+  return function innerRepeat(string, callback) {
+    // эмуляция запроса на сервер
+    setTimeout(() => {
+      callback.apply(null, [null, string.repeat(n)]);
+    }, 1000);
+  };
 }
 function onError(error) {
   // eslint-disable-next-line no-console
   console.error(error);
+}
+
+function promisify(func) {
+  return (arg) => new Promise((resolve, reject) => func(arg, (error, result) => {
+    if (error) {
+      reject(error);
+    }
+
+    resolve(result);
+  }));
 }
 
 function callbackHell() {
@@ -39,12 +55,12 @@ function callbackHell() {
       onError(error);
     } else {
       // eslint-disable-next-line no-shadow
-      get(list, 2, (error, value) => {
+      get(2)(list, (error, value) => {
         if (error) {
           onError(error);
         } else {
           // eslint-disable-next-line no-shadow
-          multiply(value, 10, (error, value) => {
+          multiply(10)(value, (error, value) => {
             if (error) {
               onError(error);
             } else {
@@ -54,7 +70,7 @@ function callbackHell() {
                   onError(error);
                 } else {
                   // eslint-disable-next-line no-shadow
-                  repeat(string, 3, (error, string) => {
+                  repeat(3)(string, (error, string) => {
                     if (error) {
                       onError(error);
                     } else {
@@ -73,7 +89,20 @@ function callbackHell() {
 }
 
 function promise() {
-  const requestListPromise = new Promise((resolve, reject) => {
+  const [
+    getPromisified,
+    multiplyPromisified,
+    toStringPromisified,
+    repeatPromisified
+  ] = [
+    get(2),
+    multiply(10),
+    toString,
+    repeat(3)
+  ]
+    .map(promisify);
+
+  new Promise((resolve, reject) => {
     requestList((error, list) => {
       if (error) {
         reject(error);
@@ -81,36 +110,11 @@ function promise() {
 
       resolve(list);
     });
-  });
-
-  requestListPromise
-    .then((list) => {
-      const getPromise = new Promise((resolve, reject) => {
-        get(list, 2, (error, value) => {
-          if (error) {
-            reject(error);
-          }
-
-          resolve(value);
-        });
-      });
-
-      return getPromise;
-    })
-    .then((value) => {
-      const multiplyPromise = new Promise((resolve, reject) => {
-        // eslint-disable-next-line no-shadow
-        multiply(value, 10, (error, value) => {
-          if (error) {
-            reject(error);
-          }
-
-          resolve(value);
-        });
-      });
-
-      return multiplyPromise;
-    })
+  })
+    .then(getPromisified)
+    .then(multiplyPromisified)
+    .then(toStringPromisified)
+    .then(repeatPromisified)
     .then((value) => {
       // eslint-disable-next-line no-console
       console.log(`promise(): ${value} (${typeof value})`);
